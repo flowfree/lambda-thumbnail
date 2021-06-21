@@ -1,0 +1,33 @@
+docker build -t lambda-thumbnail .
+
+aws ecr get-login-password --region us-west-2 | \
+    docker login --username AWS --password-stdin 094824881214.dkr.ecr.us-west-2.amazonaws.com
+
+aws ecr create-repository \
+    --repository-name lambda-thumbnail \
+    --image-scanning-configuration scanOnPush=true \
+    --image-tag-mutability MUTABLE
+
+docker tag lambda-thumbnail:latest 094824881214.dkr.ecr.us-west-2.amazonaws.com/lambda-thumbnail:latest
+
+docker push 094824881214.dkr.ecr.us-west-2.amazonaws.com/lambda-thumbnail:latest
+
+aws lambda create-function \
+    --function-name lambda-thumbnail \
+    --role arn:aws:iam::094824881214:role/lambda-s3-role \
+    --package-type Image \
+    --code ImageUri=094824881214.dkr.ecr.us-west-2.amazonaws.com/lambda-thumbnail:latest 
+
+aws lambda update-function-code \
+    --function-name lambda-thumbnail \
+    --image-uri 094824881214.dkr.ecr.us-west-2.amazonaws.com/lambda-thumbnail:latest
+
+aws lambda invoke \
+    --function-name lambda-thumbnail \
+    --invocation-type Event \
+    --payload file://inputFile.txt outputfile.txt
+
+aws lambda delete-function --function-name lambda-thumbnail
+
+aws ecr delete-repository --repository-name lambda-thumbnail --force
+
