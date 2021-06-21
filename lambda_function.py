@@ -29,8 +29,7 @@ def lambda_handler(event, context):
         upload_path = '/tmp/resized-{}'.format(tmpkey)
         s3_client.download_file(bucket, key, download_path)
         resize_image(download_path, upload_path)
-        key = os.path.basename(upload_path)
-        s3_client.upload_file(upload_path, bucket, key, ExtraArgs={'ACL':'public-read'})
+        s3_client.upload_file(upload_path, bucket, f'resized-{key}', ExtraArgs={'ContentType': 'image/jpeg', 'ACL': 'public-read'})
     print('done.')
             
 
