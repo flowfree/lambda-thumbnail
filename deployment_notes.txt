@@ -26,6 +26,24 @@ aws lambda invoke \
     --function-name lambda-thumbnail \
     --invocation-type Event \
     --payload file://inputFile.txt outputfile.txt
+    
+    
+S3 Trigger
+----------
+
+aws lambda add-permission \
+    --function-name lambda-thumbnail \
+    --principal s3.amazonaws.com \
+    --statement-id s3invoke \
+    --action "lambda:InvokeFunction" \
+    --source-arn arn:aws:s3:::tmp-2021-06-22-src \
+    --source-account 094824881214
+    
+aws lambda get-policy --function-name lambda-thumbnail
+    
+    
+Cleanup
+-------
 
 aws lambda delete-function --function-name lambda-thumbnail
 

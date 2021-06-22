@@ -21,23 +21,26 @@ def resize_image(image_path, resized_path):
 
 
 def lambda_handler(event, context):
+    bucket_src = 'tmp-2021-06-22-src'
+    bucket_dst = 'tmp-2021-06-22-dst'
+    
     for record in event['Records']:
-        bucket = record['s3']['bucket']['name']
-        key_src = unquote_plus(record['s3']['object']['key'])
-        key_dst = f'resized-{key_src}'
-        tmpkey = key_src.replace('/', '')
+        if record['s3']['bucket']['name'] != bucket_src:
+            continue
+        key = unquote_plus(record['s3']['object']['key'])
+        tmpkey = key.replace('/', '')
         download_path = '/tmp/{}{}'.format(uuid.uuid4(), tmpkey)
         upload_path = '/tmp/resized-{}'.format(tmpkey)
         
-        s3_client.download_file(bucket, key_src, download_path)
+        s3_client.download_file(bucket_src, key, download_path)
         resize_image(download_path, upload_path)
         
-        mimetype, _ = mimetypes.guess_type(key_src)
+        mimetype, _ = mimetypes.guess_type(key)
         args = {
             'ContentType': mimetype,
             'ACL': 'public-read'
         }
-        s3_client.upload_file(upload_path, bucket, key_dst, ExtraArgs=args)
+        s3_client.upload_file(upload_path, bucket_dst, key, ExtraArgs=args)
         
     print('done.')
             
