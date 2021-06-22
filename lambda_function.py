@@ -11,6 +11,9 @@ from PIL import Image
 import PIL.Image
 
 
+bucket_src = 'tmp-2021-06-22-src'
+bucket_dst = 'tmp-2021-06-22-dst'
+
 s3_client = boto3.client('s3')
 
 
@@ -21,9 +24,6 @@ def resize_image(image_path, resized_path):
 
 
 def lambda_handler(event, context):
-    bucket_src = 'tmp-2021-06-22-src'
-    bucket_dst = 'tmp-2021-06-22-dst'
-    
     for record in event['Records']:
         if record['s3']['bucket']['name'] != bucket_src:
             continue
