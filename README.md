@@ -3,6 +3,15 @@ Lambda Thumbnail Generator
 
 AWS Lambda function to generate a thumbnail for each image file that is uploaded to an S3 bucket. Based on [this tutorial](https://docs.aws.amazon.com/lambda/latest/dg/with-s3-tutorial.html) with some modifications.
 
+Prerequisites
+-------------
+
+1. AWS CLI version 2
+
+2. Docker
+
+3. Create two S3 buckets. The first bucket will be used to upload the images and the second bucket will be used to store the generated thumbnails.
+
 Deploy to Lambda
 ----------------
 
@@ -39,7 +48,49 @@ Deploy to Lambda
 
         docker push <account>.dkr.ecr.<region>.amazonaws.com/lambda-thumbnail:latest
 
-8.  Create the Lambda function:
+8.  Create a new IAM role for the Lambda function. It should have sufficient permissions like this:
+
+        {
+          "Version":"2012-10-17",
+          "Statement":[
+            {
+              "Effect":"Allow",
+              "Action":[
+                "logs:PutLogEvents",
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream"
+              ],
+              "Resource":"arn:aws:logs:*:*:*"
+            },
+            {
+              "Effect":"Allow",
+              "Action":[
+                "s3:GetObject",
+                "s3:GetObjectAcl"
+              ],
+              "Resource": "<ARN of the source S3 bucket>/*"
+            },
+            {
+              "Effect":"Allow",
+              "Action":[
+                "s3:PutObject",
+                "s3:PutObjectAcl"
+              ],
+              "Resource":"<ARN of the destination bucket>/*"
+            },
+            {
+              "Effect":"Allow",
+              "Action":[
+                "ecr:SetRepositoryPolicy",
+                "ecr:GetRepositoryPolicy",
+                "ecr:InitiateLayerUpload"
+              ],
+              "Resource":"arn:aws:ecr:<region>:<account>:repository/*"
+            }
+          ]
+        }
+
+9.  Create the Lambda function:
 
         aws lambda create-function \
             --function-name lambda-thumbnail \
