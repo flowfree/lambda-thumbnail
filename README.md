@@ -136,3 +136,43 @@ Test the Lambda function
 
     It should create the thumbnail image on the destination bucket.
 
+
+Configure Amazon S3 to publish events
+-------------------------------------
+
+1.  Grant Amazon S3 to invoke the Lambda function:
+
+        aws lambda add-permission \
+            --function-name lambda-thumbnail \
+            --principal s3.amazonaws.com \
+            --statement-id s3invoke \
+            --action "lambda:InvokeFunction" \
+            --source-arn <ARN of the source bucket> \
+            --source-account <account>
+
+2.  Verify the function's access policy:
+
+        aws lambda get-policy --function-name lambda-thumbnail
+
+3.  Open the source S3 bucket from the Amazon S3 console. Choose **Properties** - **Event notifications** - **Create event notification** with the following settings:
+
+    - **Event name** - `lambda-trigger`
+    - **Event types** - `All object create events`
+    - **Destination** - `Lambda function`
+    - **Lambda function** - `lambda-thumbnail`
+
+4.  To test the trigger, upload an image to the source bucket and then verify that a thumbnail is created in the target S3 bucket.
+
+Cleanup
+-------
+
+1.  Delete the Lambda function:
+
+        aws lambda delete-function --function-name lambda-thumbnail
+
+2.  Delete the ECR repository:
+
+        aws ecr delete-repository --repository-name lambda-thumbnail --force
+
+3.  Delete the S3 buckets.
+
